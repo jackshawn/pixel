@@ -18,13 +18,26 @@
         var h = document.documentElement.clientHeight;
 
         console.log(w + ' ' + h);
-        var x = Math.floor(w / 13);
-        var y = Math.floor(h / 18);
-        for (var a = 0; a < x * y; a++) {
+        Number.prototype.quz = function () {
+            return Math.floor(this);
+        };
+        var x = (w / 13).quz();
+        var y = (h / 18).quz();
+        var all = x * y;
+
+        function each() {
+            var a;
+            var arrlength = (arguments.length == 2) ? arguments[0].length : all;
+            for (a = 0; a < arrlength; a++) {
+                arguments[arguments.length - 1](a);
+            }
+        }
+
+        each(function () {
             var inputs = document.createElement('input');
             inputs.type = 'radio';
             document.body.appendChild(inputs)
-        }
+        });
 
         var btns = document.getElementsByTagName('input');
 
@@ -34,78 +47,107 @@
                 [[0, -3], [0, -2], [0, 1], [-1, -2], [-1, -1], [-1, 0], [-1, 2], [-2, -2], [-2, 0], [-2, 3], [-3, -2], [-3, 1], [-4, 2], [-5, 3], [1, 0], [1, -1], [1, -2], [1, -4], [1, 1], [2, -2], [2, 1], [2, 2], [3, 0], [3, -2], [3, 3], [4, -2], [4, 3]],
                 [[0, -2], [0, 1], [-1, 0], [-1, -2], [-2, -4], [-2, -3], [-2, -2], [-2, -1], [-2, 0], [-2, 1], [-2, 2], [-2, 3], [-3, -2], [-3, 0], [-4, -2], [-4, 1], [-5, 2], [1, 3], [2, 2], [2, -2], [2, -1], [2, 0], [2, 1], [3, -2], [4, -2], [4, -1], [4, 0], [4, 1], [4, 2], [5, 3], [6, 2]],
                 [[0, -1], [0, -2], [0, -3], [0, -4], [-1, -2], [-1, 0], [-2, -2], [-2, 1], [-3, -2], [-3, 2], [-4, -2], [-4, 3], [1, -2], [1, 0], [2, -2], [2, 1], [3, -2], [3, 2], [4, -2], [4, 3]],
-                [[0, -4], [0, -2], [0,3],[-1, -3], [-2, -3], [-2, -1], [-2, 0], [-2, 1], [-2, 2], [-3, -1], [-3, -2], [-3, -3], [-3, -4], [-3, 2], [-4, -1], [-4, 0], [-4, 1], [-4, 2], [1, -3], [1, -2], [1, 2], [2, -2], [2, -1], [2, 1], [3, 0], [3, -2], [3, 0], [4, 1], [4, -1], [4, -2], [4, -4], [5, -2], [5, -3], [5, 2], [6, 1],[6,2],[6,3]]
+                [[0, -4], [0, -2], [0, 3], [-1, -3], [-2, -3], [-2, -1], [-2, 0], [-2, 1], [-2, 2], [-3, -1], [-3, -2], [-3, -3], [-3, -4], [-3, 2], [-4, -1], [-4, 0], [-4, 1], [-4, 2], [1, -3], [1, -2], [1, 2], [2, -2], [2, -1], [2, 1], [3, 0], [3, -2], [3, 0], [4, 1], [4, -1], [4, -2], [4, -4], [5, -2], [5, -3], [5, 2], [6, 1], [6, 2], [6, 3]]
             ]
         }
+
         model.prototype = {
-            layout : function(i, arr, state) {
+            layout: function (i, arr, state) {
                 var newstate = (state == 'show') ? 'checked' : '';
                 var newi;
-                for (var b = 0; b < arr.length; b++) {
-                    newi = Math.floor(i + arr[b][0] + arr[b][1] * x);
-                    if ((newi > 0) && (newi < btns.length)) {
+                each(arr, function (a) {
+                    newi = i + arr[a][0] + arr[a][1] * x;
+                    if ((newi > 0) && (newi < all)) {
                         btns[newi].checked = newstate;
                     }
-                }
+                });
             },
-            fire : function(i) {
+            fire: function (i) {
                 var _this = this;
-                var c = -4;
-                setInterval(function () {
-                    if (Math.floor(i / x) + c > -4) {
-                        _this.layout(i, [[0, c]], 'show');
-                        _this.layout(i, [[0, c + 1]], 'hide');
-                    }
-                    c--
-                }, 80)
+                _this.move(i, [[0, -4]]);
             },
-            showname : function() {
+            showname: function () {
                 var _this = this;
-                var setname = function (num) {
-                    return Math.floor(x * num) + Math.floor(y * 2 / 5) * x;
-                };
                 var z = 0;
-                setInterval(function () {
+                var t_y = (y * 3 / 8).quz() * x;
+
+                function name() {
+                    function setname(num) {
+                        return (x * num).quz() + t_y;
+                    }
+
+                    _this.layout(setname(.2 * (1 + z)), newmodel.name[z], 'show');
+                }
+
+                function line() {
+                    var top_left = t_y - x * 6 + 6;
+                    var top_right = top_left + x - 12;
+                    var bottom_left = top_left + 12 * x;
+                    var bottom_right = top_right + 12 * x;
+                    each(function (i) {
+                        if (i > top_left && i < top_right) {
+                            btns[i].checked = 'checked';
+                        }
+                        if (i > bottom_left && i < bottom_right) {
+                            btns[i].checked = 'checked';
+                        }
+                        if (i > top_right && i < bottom_left && (i % x == 6 || i % x == (x - 6))) {
+                            btns[i].checked = 'checked';
+                        }
+                    })
+                }
+
+                function shine() {
+                    each(function (i) {
+                        (btns[i].checked == '') ? btns[i].checked = 'checked' : btns[i].checked = '';
+                    })
+                }
+
+                var toshow = setInterval(function () {
                     if (z < 4) {
-                        _this.layout(setname(.2 * (1 + z)), newmodel.name[z], 'show');
+                        name();
+                    }
+                    if (z == 4) {
+                        line();
                     }
                     if (z > 4 && z < 9) {
-                        var i;
-                        for (i = 0; i < btns.length; i++) {
-                            (btns[i].checked == '') ? btns[i].checked = 'checked' : btns[i].checked = '';
-                        }
+                        shine();
+                    }
+                    if (z == 9) {
+                        clearInterval(toshow);
                     }
                     z++;
                 }, 300);
             },
-            move : function(i, arr, t) {
+            move: function (i, arr, t) {
                 var _this = this;
-                setInterval(function () {
+                t = (arguments.length == 3) ? arguments[2] : (i / x).quz();
+
+                var tomove = setInterval(function () {
                     if (t > 0) {
                         for (c = 0; c < arr.length; c++) {
                             _this.layout(i, arr, 'hide');
                             arr[c][1]--;
                             _this.layout(i, arr, 'show');
                         }
+                    } else {
+                        clearInterval(tomove);
                     }
                     t--;
                 }, 100)
             }
-        }
+        };
 
         var newmodel = new model();
 
-        newmodel.move(x * y - x * .5, (new model().plane), 7);
+        newmodel.move(all - (x/2).quz(), (new model().plane), 7);
         newmodel.showname();
         document.body.onclick = (function () {
             var clicked = false;
             return function () {
                 if (!clicked) {
-                    var i;
-                    for (i = 0; i < btns.length; i++) {
-                        btns[i].checked = '';
-                    }
-                    for (i = 0; i < btns.length; i++) {
+                    each(function (a) {
+                        btns[a].checked = '';
                         (function (i) {
                             btns[i].onmouseover = function () {
                                 newmodel.layout(i, newmodel.plane, 'show');
@@ -115,8 +157,8 @@
                                 newmodel.layout(i, newmodel.plane, 'hide');
 
                             }
-                        })(i)
-                    }
+                        })(a)
+                    });
                     clicked = true;
                 }
             }
