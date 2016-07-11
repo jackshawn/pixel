@@ -16,7 +16,6 @@
     (function () {
         var w = document.documentElement.clientWidth;
         var h = document.documentElement.clientHeight;
-
         console.log(w + ' ' + h);
         Number.prototype.quz = function () {
             return Math.floor(this);
@@ -38,7 +37,6 @@
             inputs.type = 'radio';
             document.body.appendChild(inputs)
         });
-
         var btns = document.getElementsByTagName('input');
 
         function model() {
@@ -62,9 +60,50 @@
                     }
                 });
             },
+            xy_i: function (arg) {
+                if (typeof arg == 'number') {
+                    return [arg % x, (arg / x).quz()]
+                }
+                if (typeof arg == 'object') {
+                    return (arg[0] - 1) * x + arg[1];
+                }
+                else {
+                    console.log('arg erro')
+                }
+            },
             fire: function (i) {
-                var _this = this;
-                _this.move(i, [[0, -4]]);
+                this.move(i, [[0, -4]]);
+            },
+            line: function (towards, start, end) {
+                switch (towards) {
+                    case 'x':
+                        each(function (i) {
+                            if (i > start && i < end) {
+                                btns[i].checked = 'checked';
+                            }
+                        });
+                        break;
+                    case 'y':
+                        var liney = end % x;
+                        each(function (i) {
+                            if (i > start && i < end && (i % x == liney)) {
+                                btns[i].checked = 'checked';
+                            }
+                        });
+                        break;
+                    default:
+                        console.log('towards erro')
+                }
+            },
+            box: function (start, end) {
+                var top_left = start;
+                var top_right = start + end % x - start % x;
+                var bottom_left = (end / x).quz() * x + start % x;
+                var bottom_right = end;
+                this.line('x', top_left, top_right);
+                this.line('x', bottom_left, bottom_right);
+                this.line('y', top_left, bottom_left);
+                this.line('y', top_right, bottom_right);
             },
             showname: function () {
                 var _this = this;
@@ -79,24 +118,6 @@
                     _this.layout(setname(.2 * (1 + z)), newmodel.name[z], 'show');
                 }
 
-                function line() {
-                    var top_left = t_y - x * 6 + 6;
-                    var top_right = top_left + x - 12;
-                    var bottom_left = top_left + 12 * x;
-                    var bottom_right = top_right + 12 * x;
-                    each(function (i) {
-                        if (i > top_left && i < top_right) {
-                            btns[i].checked = 'checked';
-                        }
-                        if (i > bottom_left && i < bottom_right) {
-                            btns[i].checked = 'checked';
-                        }
-                        if (i > top_right && i < bottom_left && (i % x == 6 || i % x == (x - 6))) {
-                            btns[i].checked = 'checked';
-                        }
-                    })
-                }
-
                 function shine() {
                     each(function (i) {
                         (btns[i].checked == '') ? btns[i].checked = 'checked' : btns[i].checked = '';
@@ -108,7 +129,9 @@
                         name();
                     }
                     if (z == 4) {
-                        line();
+                        var start = t_y - x * 6 + 6;
+                        var end = start + x * 13 - 12;
+                        _this.box(start, end);
                     }
                     if (z > 4 && z < 9) {
                         shine();
@@ -122,7 +145,6 @@
             move: function (i, arr, t) {
                 var _this = this;
                 t = (arguments.length == 3) ? arguments[2] : (i / x).quz();
-
                 var tomove = setInterval(function () {
                     if (t > 0) {
                         for (c = 0; c < arr.length; c++) {
@@ -137,33 +159,30 @@
                 }, 100)
             }
         };
-
-        var newmodel = new model();
-
-        newmodel.move(all - (x/2).quz(), (new model().plane), 7);
-        newmodel.showname();
-        document.body.onclick = (function () {
-            var clicked = false;
-            return function () {
-                if (!clicked) {
-                    each(function (a) {
-                        btns[a].checked = '';
-                        (function (i) {
-                            btns[i].onmouseover = function () {
-                                newmodel.layout(i, newmodel.plane, 'show');
-                                newmodel.fire(i)
-                            };
-                            btns[i].onmouseout = function () {
-                                newmodel.layout(i, newmodel.plane, 'hide');
-
-                            }
-                        })(a)
-                    });
-                    clicked = true;
-                }
-            }
-        })();
-    })()
-</script>
-</body>
+    var newmodel = new model();
+    newmodel.move(all - (x / 2).quz(), (new model().plane), 7);
+    newmodel.showname();
+    document.body.onclick = (function () {
+      var clicked = false;
+      return function () {
+        if (!clicked) {
+          each(function (a) {
+            btns[a].checked = '';
+            (function (i) {
+              btns[i].onmouseover = function () {
+                newmodel.layout(i, newmodel.plane, 'show');
+                newmodel.fire(i)
+              };
+              btns[i].onmouseout = function () {
+                newmodel.layout(i, newmodel.plane, 'hide');
+              }
+            })(a)
+          });
+          clicked = true;
+        }
+      }
+    })();
+  })()
+</script>   
+ </body>
 </html>
