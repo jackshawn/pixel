@@ -159,30 +159,30 @@
                 }, 100)
             }
         };
-    var newmodel = new model();
-    newmodel.move(all - (x / 2).quz(), (new model().plane), 7);
-    newmodel.showname();
-    document.body.onclick = (function () {
-      var clicked = false;
-      return function () {
-        if (!clicked) {
-          each(function (a) {
-            btns[a].checked = '';
-            (function (i) {
-              btns[i].onmouseover = function () {
-                newmodel.layout(i, newmodel.plane, 'show');
-                newmodel.fire(i)
-              };
-              btns[i].onmouseout = function () {
-                newmodel.layout(i, newmodel.plane, 'hide');
-              }
-            })(a)
-          });
-          clicked = true;
-        }
-      }
-    })();
-  })()
-</script>   
- </body>
+        var newmodel = new model();
+        newmodel.move(all - (x / 2).quz(), (new model().plane), 7);
+        newmodel.showname();
+        document.body.onclick = (function () {
+            var clicked = false;
+            return function () {
+                if (!clicked) {
+                    each(function (a) {
+                        btns[a].checked = '';
+                        (function (i) {
+                            btns[i].onmouseover = function () {
+                                newmodel.layout(i, newmodel.plane, 'show');
+                                newmodel.fire(i)
+                            };
+                            btns[i].onmouseout = function () {
+                                newmodel.layout(i, newmodel.plane, 'hide');
+                            }
+                        })(a)
+                    });
+                    clicked = true;
+                }
+            }
+        })();
+    })()
+</script>
+</body>
 </html>
