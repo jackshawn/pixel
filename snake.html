@@ -8,9 +8,66 @@
 <script src="pixel.js"></script>
 <script>
     pixel.init();
-    pixel.printWord('snake     score:123');
     var bg = pixel.bgInfo();
-    pixel.box(bg.x*7+1,bg.all- bg.x -2)
+    pixel.printWord('snake');
+    pixel.printWord('score:', (bg.x * 7 / 2)._floor());
+    pixel.box(bg.x * 7 + 1, bg.all - bg.x - 2);
+    var snake = {
+        model: [[-1, 0], [0, 0], [1, 0]],
+        position: bg.center - 1,
+        speed: 500,
+        end: Infinity,
+        head: [1, 0],
+        target: 'right',
+        noTargetId: 37
+    };
+    pixel.animate(function (i) {
+        switch (snake.target) {
+            case 'top':
+                snake.head[1]--;
+                break;
+            case 'right':
+                snake.head[0]++;
+                break;
+            case 'bottom':
+                snake.head[1]++;
+                break;
+            case 'left':
+                snake.head[0]--;
+                break;
+            default:
+        }
+        snake.model.push(snake.head.slice());
+        pixel.layout(snake.position, snake.model, 'show');
+        pixel.layout(snake.position, [snake.model.shift()], 'hide');
+    }, {
+        end: snake.end,
+        speed: snake.speed
+    });
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode != snake.noTargetId) {
+            switch (e.keyCode) {
+                case 38:
+                    snake.target = 'top';
+                    snake.noTargetId = 40;
+                    break;
+                case 39:
+                    snake.target = 'right';
+                    snake.noTargetId = 37;
+                    break;
+                case 40:
+                    snake.target = 'bottom';
+                    snake.noTargetId = 38;
+                    break;
+                case 37:
+                    snake.target = 'left';
+                    snake.noTargetId = 39;
+                    break;
+                default:
+            }
+        }
+    }
 </script>
 </body>
 </html>
