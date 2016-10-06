@@ -19,9 +19,13 @@
         end: Infinity,
         head: [1, 0],
         target: 'right',
-        noTargetId: 37
+        noTargetId: 37,
+        area: {
+            min: bg.x * 8 + 2,
+            max: bg.all - bg.x * 2 - 3
+        }
     };
-    pixel.animate(function (i) {
+    pixel.animate(function (i, id) {
         switch (snake.target) {
             case 'top':
                 snake.head[1]--;
@@ -37,9 +41,20 @@
                 break;
             default:
         }
-        snake.model.push(snake.head.slice());
-        pixel.layout(snake.position, snake.model, 'show');
-        pixel.layout(snake.position, [snake.model.shift()], 'hide');
+        var headNum = snake.position + snake.head[0] + snake.head[1] * bg.x;
+        var n = headNum % bg.x;
+        if (headNum < snake.area.min || headNum > snake.area.max || n == 0 || n == bg.x - 1 || n == 1 || n == bg.x - 2) {
+            pixel.printWord('game over', bg.center - 24 + bg.x * 3);
+            clearInterval(id);
+        } else {
+            //加入新的头部
+            snake.model.push(snake.head.slice());
+            //显示头部
+            pixel.layout(snake.position, snake.model, 'show');
+            //隐藏尾部
+            pixel.layout(snake.position, [snake.model.shift()], 'hide');
+        }
+
     }, {
         end: snake.end,
         speed: snake.speed
