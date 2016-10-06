@@ -39,14 +39,16 @@ var pixel = (function () {
         return newArr;
     };
     //按钮，以及其横向、纵向和总个数
+    var input = document.createElement('input');
+    input.type = 'radio';
+    document.body.appendChild(input);
+    var l = input.offsetWidth;
     var btns;
-    var x = (w / 13)._floor();
-    var y = (h / 18)._floor();
+    var x = (w / l)._floor();
+    var y = (h / l)._floor();
     var all = x * y;
-
+    document.body.removeChild(input);
     var model = function () {
-        //todo
-        //用于创建常用的数字、字母等模型
     };
     //原型上添加方法
     model.prototype = {
@@ -56,7 +58,14 @@ var pixel = (function () {
                 x: x,
                 y: y,
                 all: all,
-                btns: btns
+                btns: btns,
+                center: (function () {
+                    if (y % 2) {
+                        return (all / 2)._floor();
+                    } else {
+                        return ((all + x) / 2)._floor();
+                    }
+                })()
             }
         },
         //迭代方法
@@ -75,7 +84,7 @@ var pixel = (function () {
             });
             btns = document.getElementsByTagName('input');
             var styleNode = document.createElement('style');
-            str = 'body,input{margin:0;overflow:hidden}';
+            str = 'body,input{margin:0;overflow:hidden;line-height:12px}';
             if (styleNode.styleSheet) {
                 styleNode.styleSheet.cssText = str;
             } else {
@@ -173,7 +182,7 @@ var pixel = (function () {
             var steps = 0;
             var toshow = setInterval(function () {
                 if (steps < option.end) {
-                    typeof fns == 'function' ? fns(steps) : fns[steps](steps);
+                    typeof fns == 'function' ? fns(steps, toshow) : fns[steps](steps, toshow);
                 }
                 if (steps == option.end) {
                     clearInterval(toshow);
@@ -201,7 +210,7 @@ var pixel = (function () {
                 d: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, -2], [0, 2], [0, -2], [1, 1], [1, 0], [1, -1]],
                 e: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, 0], [-1, -2], [0, 2], [0, 0], [0, -2], [1, 2], [1, 0], [1, -2]],
                 f: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 0], [-1, -2], [0, 0], [0, -2], [1, 0], [1, -2]],
-                g: [[-1, -2], [0, -2], [1, -2], [2, -2], [-2, -1], [-2, 0], [1, 0], [2, 0], [-2, 1], [2, 1], [-1, 2], [1, 2], [2, 2]],
+                g: [[-1, -2], [0, -2], [1, -2], [-2, -1], [-2, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2], [1, 2]],
                 h: [[-2, -2], [1, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-2, 2], [1, 2]],
                 i: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [0, 1], [-1, 2], [0, 2], [1, 2]],
                 j: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [-2, 1], [0, 1], [-1, 2]],
@@ -234,19 +243,20 @@ var pixel = (function () {
                 9: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
                 '.': [[-1, 1], [0, 1], [-1, 2], [0, 2]],
                 '-': [[-1, 0], [0, 0], [1, 0]],
-                ':': [[-1,-2],[0,-2],[-1,-1],[0,-1],[-1,1],[0,1],[-1,2],[0,2]]
+                ':': [[-1, -2], [0, -2], [-1, -1], [0, -1], [-1, 1], [0, 1], [-1, 2], [0, 2]]
             };
             var s = word.split('');
             var b = start || (x * 3 + 3);
             for (var i = 0; i < s.length; i++) {
-                var longWord = 'agmqvwxyz';
+                var longWord = 'amqvwxyz';
                 var thisWord = s[i];
                 var distance = longWord.indexOf(thisWord) == -1 ? 5 : 6;
-                if (thisWord * 1 || longWord.indexOf(thisWord)==-1) {
+                if (thisWord * 1 || longWord.indexOf(thisWord) == -1) {
                     distance = 5;
                 } else {
                     distance = 6;
                 }
+                // this.layout(b, [-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[-2,0],[-1,0],[0,0],[1,0],[2,0],[-2,1],[-1,1],[0,1],[1,1],[2,1],[-2,2],[-1,2],[0,2],[1,2],[2,2], 'hide');
                 this.layout(b, wordModel[thisWord], 'show');
                 b = b + distance;
             }
