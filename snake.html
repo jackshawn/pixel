@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>贪食蛇</title>
+</head>
+<body>
+<script src="pixel.js"></script>
+<script>
+    (function () {
+        pixel.init();
+        var bg = pixel.bgInfo();
+        pixel.printWord('snake');
+        pixel.printWord('score:0', (bg.x * 7 / 2)._floor());
+        pixel.box(bg.x * 7 + 1, bg.all - bg.x - 2);
+        var snake = {
+            model: [[-1, 0], [0, 0], [1, 0]],
+            position: bg.center - 1,
+            speed: 200,
+            end: Infinity,
+            head: [1, 0],
+            target: 'right',
+            noTargetId: 37,
+            area: {
+                min: bg.x * 8 + 2,
+                max: bg.all - bg.x * 2 - 3
+            },
+            scroe: 0,
+            gameover: function (i) {
+                pixel.printWord('game over', bg.center - 24 + bg.x * 3);
+                clearInterval(i);
+            }
+        };
+        var food = function () {
+            var m = (snake.area.max - snake.area.min)._random() + snake.area.min;
+            var n = m % bg.x;
+            if (n == 0 || n == (bg.x - 1) || n == 1 || n == (bg.x - 2) || n == 2 || n == 3) {
+                return m + 6;
+            } else {
+                return m;
+            }
+        };
+        var first = food();
+        pixel.layout(first, [[0, 0]], 'show');
+        var move = function () {
+            pixel.animate(function (i, id) {
+                switch (snake.target) {
+                    case 'top':
+                        snake.head[1]--;
+                        break;
+                    case 'right':
+                        snake.head[0]++;
+                        break;
+                    case 'bottom':
+                        snake.head[1]++;
+                        break;
+                    case 'left':
+                        snake.head[0]--;
+                        break;
+                    default:
+                }
+                var headNum = snake.position + snake.head[0] + snake.head[1] * bg.x;
+                var n = headNum % bg.x;
+                //判断是否撞墙
+                if (headNum < snake.area.min || headNum > snake.area.max || n == 0 || n == bg.x - 1 || n == 1 || n == bg.x - 2) {
+                    snake.gameover(id);
+                } else {
+                    var newhead = snake.head.slice();
+                    var crossed = (function () {
+                        for (var i = 0; i < snake.model.length; i++) {
+                            if (snake.model[i][0] == newhead[0] && snake.model[i][1] == newhead[1]) {
+                                return true
+                            }
+                        }
+                    })();
+                    //判断是否交叉撞到身体
+                    if (crossed) {
+                        snake.gameover(id);
+                    } else {
+                        //加入新的头部
+                        snake.model.push(newhead);
+                        //显示头部
+                        pixel.layout(snake.position, snake.model, 'show');
+                        //判断是否吃到食物
+                        if (first != snake.position + snake.head[0] + snake.head[1] * bg.x) {
+                            //隐藏尾部
+                            pixel.layout(snake.position, [snake.model.shift()], 'hide');
+                        } else {
+                            first = food();
+                            pixel.layout(first, [[0, 0]], 'show');
+                            snake.scroe += 10;
+                            pixel.printWord('score:' + snake.scroe, (bg.x * 7 / 2)._floor());
+                            //连吃5个加速80%
+                            if (snake.scroe % 50 == 0) {
+                                snake.speed *= .8;
+                                clearInterval(id);
+                                move();
+                            }
+                        }
+                    }
+                }
+            }, {
+                end: snake.end,
+                speed: snake.speed
+            });
+        };
+        move();
+        document.onkeydown = function (event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode != snake.noTargetId) {
+                switch (e.keyCode) {
+                    case 38:
+                        snake.target = 'top';
+                        snake.noTargetId = 40;
+                        break;
+                    case 39:
+                        snake.target = 'right';
+                        snake.noTargetId = 37;
+                        break;
+                    case 40:
+                        snake.target = 'bottom';
+                        snake.noTargetId = 38;
+                        break;
+                    case 37:
+                        snake.target = 'left';
+                        snake.noTargetId = 39;
+                        break;
+                    default:
+                }
+            }
+        }
+    })()
+</script>
+</body>
+</html>
