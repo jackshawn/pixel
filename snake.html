@@ -10,124 +10,208 @@
     (function () {
         pixel.init();
         var bg = pixel.bgInfo();
-        pixel.printWord('snake');
-        pixel.printWord('score:0', (bg.x * 7 / 2)._floor());
-        pixel.box(bg.x * 7 + 1, bg.all - bg.x - 2);
-        var snake = {
-            model: [[-1, 0], [0, 0], [1, 0]],
-            position: bg.center - 1,
-            speed: 200,
-            end: Infinity,
-            head: [1, 0],
-            target: 'right',
-            noTargetId: 37,
-            area: {
-                min: bg.x * 8 + 2,
-                max: bg.all - bg.x * 2 - 3
+        //开始游戏选择界面
+        var welcome = {
+            playmodel: '',
+            arrow: [[0, 0], [0, 1], [0, -1], [0, 2], [0, -2], [1, 0], [1, 1], [1, -1], [2, 0]],
+            init: function () {
+                pixel.layout(bg.center - bg.x * 6 - 15, this.arrow, 'show');
+                pixel.printWord('play', bg.center - bg.x * 6 - 5);
+                pixel.printWord('auto', bg.center + bg.x * 6 - 5);
             },
-            scroe: 0,
-            gameover: function (i) {
-                pixel.printWord('game over', bg.center - 24 + bg.x * 3);
-                clearInterval(i);
-            }
+            move: function (i, t) {
+                if (this.towards == t) {
+                    pixel.move(bg.center + bg.x * i - 15, this.arrow, {
+                        towards: t,
+                        steps: 12,
+                        speed: 10
+                    });
+                    this.towards = t == 'top' ? 'bottom' : 'top';
+                }
+            },
+            towards: 'bottom'
         };
-        var food = function () {
-            var m = (snake.area.max - snake.area.min)._random() + snake.area.min;
-            var n = m % bg.x;
-            if (n == 0 || n == (bg.x - 1) || n == 1 || n == (bg.x - 2) || n == 2 || n == 3) {
-                return m + 6;
-            } else {
-                return m;
-            }
-        };
-        var first = food();
-        pixel.layout(first, [[0, 0]], 'show');
-        var move = function () {
-            pixel.animate(function (i, id) {
-                switch (snake.target) {
-                    case 'top':
-                        snake.head[1]--;
+        welcome.init();
+        document.onkeydown = function (event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode) {
+                switch (e.keyCode) {
+                    case 38:
+                        welcome.move(6, 'top');
+                        welcome.playmodel = 'play';
                         break;
-                    case 'right':
-                        snake.head[0]++;
+                    case 40:
+                        welcome.move(-6, 'bottom');
+                        welcome.playmodel = 'auto';
                         break;
-                    case 'bottom':
-                        snake.head[1]++;
-                        break;
-                    case 'left':
-                        snake.head[0]--;
+                    case 13:
+                        start(welcome.playmodel);
                         break;
                     default:
                 }
-                var headNum = snake.position + snake.head[0] + snake.head[1] * bg.x;
-                var n = headNum % bg.x;
-                //判断是否撞墙
-                if (headNum < snake.area.min || headNum > snake.area.max || n == 0 || n == bg.x - 1 || n == 1 || n == bg.x - 2) {
-                    snake.gameover(id);
-                } else {
-                    var newhead = snake.head.slice();
-                    var crossed = (function () {
-                        for (var i = 0; i < snake.model.length; i++) {
-                            if (snake.model[i][0] == newhead[0] && snake.model[i][1] == newhead[1]) {
-                                return true
-                            }
+            }
+        };
+        //游戏入口
+        var start = function (m) {
+            pixel.clear();
+            pixel.printWord('snake');
+            pixel.printWord('score:0', (bg.x * 7 / 2)._floor());
+            pixel.box(bg.x * 7 + 1, bg.all - bg.x - 2);
+            var snake = {
+                model: [[-1, 0], [0, 0], [1, 0]],
+                position: bg.center - 1,
+                speed: 40,
+                end: Infinity,
+                head: [1, 0],
+                target: 'right',
+                noTargetId: 37,
+                area: {
+                    min: bg.x * 8 + 2,
+                    max: bg.all - bg.x * 2 - 3
+                },
+                scroe: 0,
+                gameover: function (i) {
+                    pixel.printWord('game over', bg.center - 24 + bg.x * 3);
+                    clearInterval(i);
+                },
+                turn: (function () {
+                    var fn = function (i) {
+                        switch (i) {
+                            case 38:
+                                snake.target = 'top';
+                                snake.noTargetId = 40;
+                                break;
+                            case 39:
+                                snake.target = 'right';
+                                snake.noTargetId = 37;
+                                break;
+                            case 40:
+                                snake.target = 'bottom';
+                                snake.noTargetId = 38;
+                                break;
+                            case 37:
+                                snake.target = 'left';
+                                snake.noTargetId = 39;
+                                break;
+                            default:
                         }
-                    })();
-                    //判断是否交叉撞到身体
-                    if (crossed) {
-                        snake.gameover(id);
-                    } else {
-                        //加入新的头部
-                        snake.model.push(newhead);
-                        //显示头部
-                        pixel.layout(snake.position, snake.model, 'show');
-                        //判断是否吃到食物
-                        if (first != snake.position + snake.head[0] + snake.head[1] * bg.x) {
-                            //隐藏尾部
-                            pixel.layout(snake.position, [snake.model.shift()], 'hide');
-                        } else {
-                            first = food();
-                            pixel.layout(first, [[0, 0]], 'show');
-                            snake.scroe += 10;
-                            pixel.printWord('score:' + snake.scroe, (bg.x * 7 / 2)._floor());
-                            //连吃5个加速80%
-                            if (snake.scroe % 50 == 0) {
-                                snake.speed *= .8;
-                                clearInterval(id);
-                                move();
-                            }
+                    };
+                    document.onkeydown = function (event) {
+                        var e = event || window.event || arguments.callee.caller.arguments[0];
+                        if (e && e.keyCode != snake.noTargetId) {
+                            fn(e.keyCode);
+                        }
+                    };
+                    return fn;
+                })(),
+                check: function (arr1, arr2) {
+                    for (var i = 0; i < arr1.length; i++) {
+                        if (arr1[i][0] == arr2[0] && arr1[i][1] == arr2[1]) {
+                            return true
                         }
                     }
                 }
-            }, {
-                end: snake.end,
-                speed: snake.speed
-            });
-        };
-        move();
-        document.onkeydown = function (event) {
-            var e = event || window.event || arguments.callee.caller.arguments[0];
-            if (e && e.keyCode != snake.noTargetId) {
-                switch (e.keyCode) {
-                    case 38:
-                        snake.target = 'top';
-                        snake.noTargetId = 40;
-                        break;
-                    case 39:
-                        snake.target = 'right';
-                        snake.noTargetId = 37;
-                        break;
-                    case 40:
-                        snake.target = 'bottom';
-                        snake.noTargetId = 38;
-                        break;
-                    case 37:
-                        snake.target = 'left';
-                        snake.noTargetId = 39;
-                        break;
-                    default:
+            };
+            var food = function () {
+                var m = (snake.area.max - snake.area.min)._random() + snake.area.min;
+                var n = m % bg.x;
+                if (n == 0 || n == (bg.x - 1) || n == 1 || n == (bg.x - 2) || n == 2 || n == 3) {
+                    return food();
+                } else {
+                    return m;
                 }
-            }
+            };
+            var first = food();
+            pixel.layout(first, [[0, 0]], 'show');
+            var move = function (m) {
+                pixel.animate(function (i, id) {
+                    switch (snake.target) {
+                        case 'top':
+                            snake.head[1]--;
+                            break;
+                        case 'right':
+                            snake.head[0]++;
+                            break;
+                        case 'bottom':
+                            snake.head[1]++;
+                            break;
+                        case 'left':
+                            snake.head[0]--;
+                            break;
+                        default:
+                    }
+                    var headNum = snake.position + snake.head[0] + snake.head[1] * bg.x;
+                    var n = headNum % bg.x;
+                    //判断是否撞墙
+                    if (headNum < snake.area.min || headNum > snake.area.max || n == 0 || n == bg.x - 1 || n == 1 || n == bg.x - 2) {
+                        snake.gameover(id);
+                    } else {
+                        var newhead = snake.head.slice();
+                        var crossed = snake.check(snake.model, snake.head);
+                        //判断是否交叉撞到身体
+                        if (crossed) {
+                            snake.gameover(id);
+                            pixel.shine();
+                        } else {
+                            //加入新的头部
+                            snake.model.push(newhead);
+                            //显示头部
+                            pixel.layout(snake.position, [newhead], 'show');
+                            //判断是否吃到食物
+                            if (first != headNum) {
+                                //隐藏尾部
+                                pixel.layout(snake.position, [snake.model.shift()], 'hide');
+                            } else {
+                                first = food();
+                                pixel.layout(first, [[0, 0]], 'show');
+                                snake.scroe += 10;
+                                pixel.printWord('score:' + snake.scroe, (bg.x * 7 / 2)._floor());
+                                //连吃5个加速80%
+                                if (snake.scroe % 50 == 0) {
+                                    snake.speed *= .8;
+                                    clearInterval(id);
+                                    move(m);
+                                }
+                            }
+                        }
+                    }
+                    //自动模式
+                    if (m == 'auto') {
+                        (function () {
+                            var line = (function () {
+                                var line1 = (headNum / bg.x)._floor();
+                                var line2 = (first / bg.x)._floor();
+                                if (line1 == line2) {
+                                    return true;
+                                }
+                            })();
+                            //食物在下面
+                            if (!line && headNum < first) {
+                                snake.turn(40);
+                                return;
+                            }
+                            //上面
+                            if (!line && headNum > first) {
+                                snake.turn(38);
+                                return;
+                            }
+                            //右面
+                            if (line && headNum < first) {
+                                snake.turn(39);
+                                return;
+                            }
+                            //左面
+                            if (line && headNum > first) {
+                                snake.turn(37);
+                            }
+                        })()
+                    }
+                }, {
+                    end: snake.end,
+                    speed: snake.speed
+                });
+            };
+            move(m);
         }
     })()
 </script>
