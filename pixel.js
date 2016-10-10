@@ -63,7 +63,7 @@ var pixel = (function () {
                     if (y % 2) {
                         return (all / 2)._floor();
                     } else {
-                        return ((all + x) / 2)._floor();
+                        return ((all - x) / 2)._floor();
                     }
                 })()
             }
@@ -98,7 +98,7 @@ var pixel = (function () {
             var newi;
             this.each(arr, function (a) {
                 newi = i + arr[a][0] + arr[a][1] * x;
-                if ((newi > 0) && (newi < all)) {
+                if ((newi > 0) && (newi < all) && btns[newi].checked != newstate) {
                     btns[newi].checked = newstate;
                 }
             });
@@ -190,16 +190,23 @@ var pixel = (function () {
                 steps++;
             }, option.speed || 300);
         },
-        //全屏闪烁方法，未实现，this指向有问题
+        //全屏闪烁方法
         shine: function () {
+            var _this = this;
             this.animate(function (a) {
-                this.each(function (i) {
-                    (bg.btns[i].checked == '') ? bg.btns[i].checked = 'checked' : bg.btns[i].checked = '';
+                _this.each(function (i) {
+                    (btns[i].checked == '') ? btns[i].checked = 'checked' : btns[i].checked = '';
                 })
             }, {end: 4, speed: 400})
         },
         //todo
         countdownTimer: function () {
+        },
+        //全屏清除
+        clear: function () {
+            this.each(function (i) {
+                btns[i].checked = '';
+            })
         },
         //字母与数字
         printWord: function (word, start) {
@@ -231,7 +238,7 @@ var pixel = (function () {
                 y: [[-2, -2], [2, -2], [-1, -1], [1, -1], [0, 0], [0, 1], [0, 2]],
                 z: [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [1, -1], [0, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2]],
                 ' ': [],
-                0: [[-2,-2],[-1,-2],[0,-2],[-2,-1],[0,-1],[-2,0],[0,0],[-2,1],[0,1],[-2,2],[-1,2],[0,2]],
+                0: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
                 1: [[-1, -2], [-2, -1], [-1, -1], [-1, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2]],
                 2: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [-2, 2], [-1, 2], [0, 2]],
                 3: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
@@ -253,13 +260,13 @@ var pixel = (function () {
                 var distance = longWord.indexOf(thisWord) == -1 ? 5 : 6;
                 if (thisWord * 1) {
                     distance = 4;
-                }else if(longWord.indexOf(thisWord) == -1){
+                } else if (longWord.indexOf(thisWord) == -1) {
                     distance = 5
                 }
                 else {
                     distance = 6;
                 }
-                this.layout(b, [[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[-2,0],[-1,0],[0,0],[1,0],[2,0],[-2,1],[-1,1],[0,1],[1,1],[2,1],[-2,2],[-1,2],[0,2],[1,2],[2,2]], 'hide');
+                this.layout(b, [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [2, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [2, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2]], 'hide');
                 this.layout(b, wordModel[thisWord], 'show');
                 b = b + distance;
             }
