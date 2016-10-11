@@ -76,10 +76,11 @@ var pixel = (function () {
             }
         },
         //初始化，页面填充按钮，设置相关样式
-        init: function () {
-            this.each(function () {
+        init: function (type) {
+            this.each(function (i) {
                 var inputs = document.createElement('input');
-                inputs.type = 'radio';
+                inputs.type = type || 'radio';
+                inputs.title = i;
                 document.body.appendChild(inputs)
             });
             btns = document.getElementsByTagName('input');
@@ -270,6 +271,30 @@ var pixel = (function () {
                 this.layout(b, wordModel[thisWord], 'show');
                 b = b + distance;
             }
+        },
+        //根据画面输出模型
+        output: function (index) {
+            var selected = '';
+            var x0, y0;
+            if (index) {
+                if (typeof index == 'number') {
+                    x0 = (index / x)._floor();
+                    y0 = index % x;
+                } else {
+                    x0 = index[0];
+                    y0 = index[1];
+                }
+            } else {
+                x0 = 0;
+                y0 = 0;
+            }
+            for (var i = 0; i < btns.length; i++) {
+                if (btns[i].checked) {
+                    var arr = [i % x - y0, (i / x)._floor() - x0];
+                    selected += ',[' + arr.join() + ']'
+                }
+            }
+            return '[' + selected.substr(1) + ']';
         }
     };
     //返回实例
