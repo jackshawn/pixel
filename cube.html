@@ -1,0 +1,85 @@
+<!--<!DOCTYPE html>-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>俄罗斯方块</title>
+</head>
+<body>
+<script src="pixel.js"></script>
+<script>
+    pixel.init('checkbox');
+    var bg = pixel.bgInfo();
+    var cube = {
+        model: [
+            //L
+            [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+            //T
+            [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3]],
+            //Z
+            [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]],
+            //|
+            [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3], [-2, 4], [-1, 4], [-2, 5], [-1, 5]],
+            //o
+            [[-2, -2], [-1, -2], [0, -2], [1, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1]],
+            //[
+            [[-2, -2], [-1, -2], [0, -2], [1, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+            //L2
+            [[0, -2], [1, -2], [0, -1], [1, -1], [0, 0], [1, 0], [0, 1], [1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+            //Z2
+            [[0, -2], [1, -2], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3]]
+        ],
+        randomModel: function () {
+            var n = (8 * Math.random())._floor();
+            var t = (4 * Math.random())._floor();
+            var m = this.model[n];
+            for (var i = 0; i < t; i++) {
+                m = m._transform();
+            }
+            return m;
+        },
+        end: Infinity,
+        speed:200
+    };
+    var first;
+    var p;
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode) {
+            switch (e.keyCode) {
+                case 37:
+                    p--;
+                    break;
+                case 39:
+                    p++;
+                    break;
+                case 32:
+                    first = first._transform();
+                    break;
+                default:
+            }
+        }
+    };
+
+    var move = function () {
+        first = cube.randomModel();
+        p = (bg.x/2)._floor();
+        pixel.layout(p,first,'show');
+        pixel.animate(function (index,id) {
+            var l = first.length-1;
+            pixel.clear();
+            if(p<bg.all){
+                p+=bg.x
+            }else{
+                clearInterval(id);
+                move();
+            }
+            pixel.layout(p,first,'show');
+        },{
+            end: cube.end,
+            speed: cube.speed
+        })
+    };
+    move();
+</script>
+</body>
+</html>
