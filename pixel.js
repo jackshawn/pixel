@@ -2,8 +2,7 @@ var pixel = (function () {
     //获取屏幕尺寸信息
     var w = document.documentElement.clientWidth;
     var h = document.documentElement.clientHeight;
-    console.log(w + ' ' + h);
-    
+
     //在number原型上添加取整方法
     Number.prototype._floor = function () {
         return Math.floor(this);
@@ -50,6 +49,8 @@ var pixel = (function () {
     document.body.removeChild(input);
     var model = function () {
     };
+    console.log(w + ' ' + h + '(' + x + ' ' + y + ')');
+
     //原型上添加方法
     model.prototype = {
         //返回屏幕尺寸信息
@@ -295,6 +296,13 @@ var pixel = (function () {
                 }
             }
             return '[' + selected.substr(1) + ']';
+        },
+        toLine: function (index, arr) {
+            var newArr = [];
+            for (var i = 0; i < arr.length; i++) {
+                newArr.push(index + arr[i][0] + arr[i][1] * bg.x);
+            }
+            return newArr;
         }
     };
     //返回实例
