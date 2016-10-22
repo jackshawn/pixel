@@ -157,6 +157,18 @@ var pixel = (function () {
                     case 'left':
                         moveStr = 'arr[c][0]--';
                         break;
+                    case 'top-left':
+                        moveStr = 'arr[c][1]--;arr[c][0]--';
+                        break;
+                    case 'top-right':
+                        moveStr = 'arr[c][1]--;arr[c][0]++';
+                        break;
+                    case 'bottom-left':
+                        moveStr = 'arr[c][1]++;arr[c][0]--';
+                        break;
+                    case 'bottom-right':
+                        moveStr = 'arr[c][1]++;arr[c][0]++';
+                        break;
                     default:
                         moveStr = 'console.log("move towards erro")';
                         break;
@@ -191,6 +203,7 @@ var pixel = (function () {
                 }
                 steps++;
             }, option.speed || 300);
+            return toshow;
         },
         //全屏闪烁方法
         shine: function () {
@@ -300,7 +313,7 @@ var pixel = (function () {
         toLine: function (index, arr) {
             var newArr = [];
             for (var i = 0; i < arr.length; i++) {
-                newArr.push(index + arr[i][0] + arr[i][1] * bg.x);
+                newArr.push(index + arr[i][0] + arr[i][1] * x);
             }
             return newArr;
         }
