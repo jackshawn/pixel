@@ -2,7 +2,6 @@ var pixel = (function () {
     //获取屏幕尺寸信息
     var w = document.documentElement.clientWidth;
     var h = document.documentElement.clientHeight;
-    console.log(w + ' ' + h);
 
     //在number原型上添加取整方法
     Number.prototype._floor = function () {
@@ -50,6 +49,8 @@ var pixel = (function () {
     document.body.removeChild(input);
     var model = function () {
     };
+    console.log(w + ' ' + h + '(' + x + ' ' + y + ')');
+
     //原型上添加方法
     model.prototype = {
         //返回屏幕尺寸信息
@@ -156,6 +157,18 @@ var pixel = (function () {
                     case 'left':
                         moveStr = 'arr[c][0]--';
                         break;
+                    case 'top-left':
+                        moveStr = 'arr[c][1]--;arr[c][0]--';
+                        break;
+                    case 'top-right':
+                        moveStr = 'arr[c][1]--;arr[c][0]++';
+                        break;
+                    case 'bottom-left':
+                        moveStr = 'arr[c][1]++;arr[c][0]--';
+                        break;
+                    case 'bottom-right':
+                        moveStr = 'arr[c][1]++;arr[c][0]++';
+                        break;
                     default:
                         moveStr = 'console.log("move towards erro")';
                         break;
@@ -190,6 +203,7 @@ var pixel = (function () {
                 }
                 steps++;
             }, option.speed || 300);
+            return toshow;
         },
         //全屏闪烁方法
         shine: function () {
@@ -295,6 +309,13 @@ var pixel = (function () {
                 }
             }
             return '[' + selected.substr(1) + ']';
+        },
+        toLine: function (index, arr) {
+            var newArr = [];
+            for (var i = 0; i < arr.length; i++) {
+                newArr.push(index + arr[i][0] + arr[i][1] * x);
+            }
+            return newArr;
         }
     };
     //返回实例
