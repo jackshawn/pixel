@@ -7,5 +7,5 @@ some pixel games by web input of radio , click the pic below to start
 [![plane]](https://jackshawn.github.io/pixel-games/)  
 [plane]:https://github.com/jackshawn/pixel-games/blob/master/readme.gif "click to start"
 ##3,Tetris
-[![plane]](https://jackshawn.github.io/pixel-games/cube.html)  
-[plane]:https://github.com/jackshawn/pixel-games/blob/master/cube.gif "click to start"
+[![cube]](https://jackshawn.github.io/pixel-games/cube.html)  
+[cube]:https://github.com/jackshawn/pixel-games/blob/master/cube.gif "click to start"
