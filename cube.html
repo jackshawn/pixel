@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>俄罗斯方块</title>
+</head>
+<body>
+<script src="pixel.js"></script>
+<script>
+    (function () {
+        pixel.init('checkbox');
+        var bg = pixel.bgInfo();
+        var welcome = {
+            box: {
+                fir: [[0, -7], [-1, -6], [0, -6], [1, -6], [-2, -5], [0, -5], [2, -5], [-3, -4], [0, -4], [3, -4], [-4, -3], [0, -3], [4, -3], [-4, -2], [0, -2], [4, -2], [-4, -1], [-1, -1], [1, -1], [4, -1], [-4, 0], [-2, 0], [2, 0], [4, 0], [-4, 1], [-3, 1], [3, 1], [4, 1], [-4, 2], [4, 2], [-3, 3], [3, 3], [-2, 4], [2, 4], [-1, 5], [1, 5], [0, 6]],
+                sec: [[-1, -5], [0, -5], [1, -5], [2, -5], [3, -5], [4, -5], [5, -5], [-2, -4], [4, -4], [5, -4], [-3, -3], [3, -3], [5, -3], [-4, -2], [-3, -2], [-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [5, -2], [-4, -1], [2, -1], [5, -1], [-4, 0], [2, 0], [5, 0], [-4, 1], [2, 1], [5, 1], [-4, 2], [2, 2], [4, 2], [-4, 3], [2, 3], [3, 3], [-4, 4], [-3, 4], [-2, 4], [-1, 4], [0, 4], [1, 4], [2, 4]]
+            },
+            top: (bg.y / 2)._floor() - 5,
+            left: (bg.x / 4)._floor(),
+            init: function () {
+                var _this = this;
+                pixel.move(_this.left, this.box.fir, {
+                    towards: 'bottom',
+                    speed: 10,
+                    steps: _this.top,
+                    callBack: function () {
+                        pixel.move(_this.top * bg.x + _this.left, _this.box.fir, {
+                            towards: 'top-right',
+                            speed: 15,
+                            steps: 3,
+                            callBack: function () {
+                                pixel.clear();
+                                pixel.move((_this.top - 3) * bg.x + _this.left + 3, _this.box.sec, {
+                                    towards: 'right',
+                                    speed: 15,
+                                    steps: 4,
+                                    callBack: function () {
+                                        pixel.clear();
+                                        pixel.move((_this.top - 3) * bg.x + _this.left + 8, _this.box.sec, {
+                                            towards: 'bottom-right',
+                                            speed: 10,
+                                            steps: 5,
+                                            callBack: function () {
+                                                pixel.printWord('cube', (_this.top + 1) * bg.x + _this.left + 28);
+                                                setTimeout(function () {
+                                                    pixel.clear();
+                                                    move();
+                                                }, 2000);
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        };
+        var cube = {
+            model: [
+                //L
+                [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+                //T
+                [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3]],
+                //Z
+                [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]],
+                //|
+                [[-2, -2], [-1, -2], [-2, -1], [-1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3], [-2, 4], [-1, 4], [-2, 5], [-1, 5]],
+                //o
+                [[-2, -2], [-1, -2], [0, -2], [1, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1]],
+                //[
+                [[-2, -2], [-1, -2], [0, -2], [1, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [-2, 1], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+                //L2
+                [[0, -2], [1, -2], [0, -1], [1, -1], [0, 0], [1, 0], [0, 1], [1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [-2, 3], [-1, 3], [0, 3], [1, 3]],
+                //Z2
+                [[0, -2], [1, -2], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [-2, 2], [-1, 2], [-2, 3], [-1, 3]]
+            ],
+            randomModel: function () {
+                var n = (8 * Math.random())._floor();
+                var t = (4 * Math.random())._floor();
+                var m = this.model[n];
+                for (var i = 0; i < t; i++) {
+                    m = m._transform();
+                }
+                return m;
+            },
+            end: Infinity,
+            speed: 200,
+            speedUp: false,
+            turn: function (obj, n) {
+                var j = n || 0;
+                var s = 'mtrbl';
+                for (var i = 0; i < j; i++) {
+                    for (var k = 0; k < 5; k++) {
+                        obj[s.charAt(k)] = obj[s.charAt(k)]._transform();
+                    }
+                }
+                return obj
+            },
+            checkLine: function () {
+                //数组，满行行数
+                var l = [];
+                var f = function (a) {
+                    //标记点亮的个数
+                    var c = 0;
+                    //当前行
+                    for (var j = a * bg.x; j < (a + 1) * bg.x; j++) {
+                        //如果是选中的，标记个数加1
+                        if (bg.btns[j].checked) {
+                            c++;
+                            if (c == bg.x) {
+                                l.push(a);
+                            }
+                        } else {
+                            //否则标记重置并且返回
+                            c = 0;
+                            return true;
+                        }
+                    }
+                };
+                for (var i = 0; i < bg.y; i++) {
+                    f(i);
+                }
+                return l;
+            },
+            hideLine: function (line) {
+                pixel.animate(function (index) {
+                    for (var i = 0; i < line.length; i++) {
+                        bg.btns[bg.x * line[i] + index].checked = false;
+                    }
+                }, {
+                    end: bg.x,
+                    speed: 20
+                })
+            },
+            moveDown: function (line) {
+                var l = line.sort()._copy();
+                for (var i = 0; i < l.length; i++) {
+                    var b = [];
+                    for (var j = 0; j < (l[i] + 1) * bg.x; j++) {
+                        if (bg.btns[j].checked) {
+                            bg.btns[j].checked = false;
+                            b.push(bg.btns[j].title * 1 + bg.x);
+                        }
+                    }
+                    for (var k = 0; k < b.length; k++) {
+                        if (bg.btns[b[k]]) {
+                            bg.btns[b[k]].checked = true;
+                        }
+                    }
+                }
+            }
+        };
+        document.onkeydown = function (event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode) {
+                switch (e.keyCode) {
+                    case 37:
+                        if (!crossed('left')) {
+                            p--;
+                        }
+                        break;
+                    case 39:
+                        if (!crossed('right')) {
+                            p++;
+                        }
+                        break;
+                    case 40:
+                        if (!cube.speedUp) {
+                            clearInterval(d);
+                            cube.speed *= .1;
+                            cube.speedUp = true;
+                            move(true);
+                        }
+                        break;
+                    case 32:
+                        var ed = first._transform();
+                        if (!crossed('default', ed)) {
+                            pixel.layout(p, first, 'hide');
+                            first = first._transform();
+                        }
+                        break;
+                    default:
+                }
+            }
+        };
+        var first, p, d;
+        var crossed = function (to, ar) {
+            var arr = ar || first;
+            var next_p, bottom, side;
+            pixel.layout(p, arr, 'hide');
+            switch (to) {
+                case 'left':
+                    next_p = p - 1;
+                    break;
+                case 'right':
+                    next_p = p + 1;
+                    break;
+                case 'bottom':
+                    next_p = p + bg.x;
+                    break;
+                default:
+                    next_p = p;
+            }
+            var next = pixel.toLine(next_p, arr);
+            for (var i = 0; i < next.length; i++) {
+                if (bg.btns[next[i]] && bg.btns[next[i]].checked) {
+                    side = true;
+                }
+            }
+            if (bg.all < next.sort().reverse()[0]) {
+                bottom = true;
+            }
+            return side || bottom;
+        };
+        var move = function (t) {
+            if (!t) {
+                first = cube.randomModel();
+                p = (bg.x * 7 / 2)._floor();
+            }
+            var gameover = (function () {
+                if (!t) {
+                    var line = pixel.toLine(p, first);
+                    for (var i = 0; i < line.length; i++) {
+                        if (bg.btns[line[i]] && bg.btns[line[i]].checked) {
+                            return true;
+                        }
+                    }
+                }
+            })();
+            if (gameover) {
+                pixel.printWord('game over', bg.center - 24);
+                pixel.shine();
+                document.onkeydown = function (e) {
+                    if (e && e.keyCode == 13) {
+                        location.reload();
+                    }
+                }
+            } else {
+                pixel.layout(p, first, 'show');
+                d = pixel.animate(function (index, id) {
+                    if (!crossed('bottom')) {
+                        p += bg.x;
+                    } else {
+                        clearInterval(id);
+                        pixel.layout(p, first, 'show');
+                        var l = cube.checkLine();
+                        if (l.length) {
+                            cube.hideLine(l);
+                            setTimeout(function () {
+                                cube.moveDown(l);
+                                if (cube.speedUp) {
+                                    cube.speedUp = false;
+                                    cube.speed *= 8;
+                                } else {
+                                    cube.speed *= .8;
+                                }
+                                move();
+                            }, bg.x * 21)
+                        } else {
+                            if (cube.speedUp) {
+                                cube.speedUp = false;
+                                cube.speed *= 10;
+                            }
+                            move()
+                        }
+                        return;
+                    }
+                    pixel.layout(p, first, 'show');
+                }, {
+                    end: cube.end,
+                    speed: cube.speed
+                });
+            }
+        };
+        welcome.init();
+    })();
+</script>
+</body>
+</html>
