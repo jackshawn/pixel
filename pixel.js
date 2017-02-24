@@ -1,324 +1,305 @@
-var pixel = (function () {
-    //获取屏幕尺寸信息
-    var w = document.documentElement.clientWidth;
-    var h = document.documentElement.clientHeight;
-
-    //在number原型上添加取整方法
-    Number.prototype._floor = function () {
-        return Math.floor(this);
+(function (window, undefined) {
+    const w = document.documentElement.clientWidth,//页面宽
+        h = document.documentElement.clientHeight,//页面高
+        // checkbox宽
+        l = (function () {
+            let input = document.createElement('input');
+            input.type = 'checkbox';
+            document.body.appendChild(input);
+            let length = input.offsetWidth;
+            document.body.removeChild(input);
+            return length;
+        })(),
+        // 横向个数
+        x = (w / l) | 0,
+        // 纵向个数
+        y = (h / l) | 0,
+        // 总个数
+        all = x * y,
+        
+        // 中心位置索引
+        center = (((y % 2 == 0) ? (all - x) / 2 : (all / 2 )) - 1) | 0;
+    //checkbox按钮数组
+    let btns = [];
+    let pixel = function (arr, p) {
+        return new pixel.fn.init(arr, p);
     };
-    //在number原型上添加获取0-这个数之间随机数的方法
-    Number.prototype._random = function () {
-        return (this * Math.random())._floor();
-    };
-    //在array原型上添加复制方法；.concat().slice(0)方法无效
-    Array.prototype._copy = function () {
-        var newArr = [];
-        for (var i in this) {
-            newArr[i] = typeof this[i] == 'object' ? this[i]._copy() : this[i];
-        }
-        return newArr;
-    };
-    //在array原型上添加变换方法
-    Array.prototype._transform = function () {
-        var newArr = [];
-        var t90 = [
-            [0, 1],
-            [-1, 0]
-        ];
-        for (var i = 0; i < this.length; i++) {
-            if (typeof this[i][0] == 'number') {
-                var fir = this[i][0] * t90[0][0] + this[i][1] * t90[1][0];
-                var sec = this[i][0] * t90[0][1] + this[i][1] * t90[1][1];
-                newArr[i] = [fir, sec]
-            } else {
-                newArr[i] = this[i]._transform();
-            }
-        }
-        return newArr;
-    };
-    //按钮，以及其横向、纵向和总个数
-    var input = document.createElement('input');
-    input.type = 'radio';
-    document.body.appendChild(input);
-    var l = input.offsetWidth;
-    var btns;
-    var x = (w / l)._floor();
-    var y = (h / l)._floor();
-    var all = x * y;
-    document.body.removeChild(input);
-    var model = function () {
-    };
-    console.log(w + ' ' + h + '(' + x + ' ' + y + ')');
-
-    //原型上添加方法
-    model.prototype = {
-        //返回屏幕尺寸信息
-        bgInfo: function () {
-            return {
-                x: x,
-                y: y,
-                all: all,
-                btns: btns,
-                center: (function () {
-                    if (y % 2) {
-                        return (all / 2)._floor();
-                    } else {
-                        return ((all - x) / 2)._floor();
-                    }
-                })()
-            }
-        },
+    
+    pixel.fn = pixel.prototype = {
         //迭代方法
-        each: function () {
-            var arrlength = (arguments.length == 2) ? arguments[0].length : all;
-            for (var a = 0; a < arrlength; a++) {
-                arguments[arguments.length - 1](a);
-            }
-        },
-        //初始化，页面填充按钮，设置相关样式
-        init: function (type) {
-            this.each(function (i) {
-                var inputs = document.createElement('input');
-                inputs.type = type || 'radio';
-                inputs.title = i;
-                document.body.appendChild(inputs)
-            });
-            btns = document.getElementsByTagName('input');
-            var styleNode = document.createElement('style');
-            str = 'body,input{margin:0;overflow:hidden;line-height:12px}';
-            if (styleNode.styleSheet) {
-                styleNode.styleSheet.cssText = str;
+        each: function (fn, l) {
+            if (l) {
+                for (let i = 0; i < l; i++) {
+                    fn(i);
+                }
             } else {
-                styleNode.innerHTML = str;
+                for (let i of this.l) {
+                    fn(i);
+                }
             }
-            document.getElementsByTagName('head')[0].appendChild(styleNode);
+            return this;
         },
-        //输出排版，arr为模型数组，i为渲染起始位置，state为设置状态
-        layout: function (i, arr, state) {
-            var newstate = (state == 'show') ? 'checked' : '';
-            var newi;
-            this.each(arr, function (a) {
-                newi = i + arr[a][0] + arr[a][1] * x;
-                if ((newi > 0) && (newi < all) && btns[newi].checked != newstate) {
-                    btns[newi].checked = newstate;
+        // 初始化，参数接受二维数组、一维数组、数字与字符串
+        init: function (arg, p) {
+            let _this = this;
+            //位置索引
+            this.p = p || center;
+            if (typeof arg == 'object') {
+                //二维数组
+                if (typeof arg[0] == 'object') {
+                    this.l = arg.map(a => _this.p + a[0] + a[1] * x);
+                }
+                //一维数组
+                if (typeof arg[0] == 'number') {
+                    this.l = arg;
+                }
+            } else if (typeof arg == 'number') {
+                // 数字
+                this.l = [arg];
+            }
+            //字符串
+            else {
+                let words = {
+                    a: [[0, -2], [-1, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-2, 1], [2, 1], [-2, 2], [2, 2]],
+                    b: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, 0], [-1, -2], [0, 2], [0, 0], [0, -2], [1, 1], [1, -1]],
+                    c: [[-2, 1], [-2, 0], [-2, -1], [-1, 2], [-1, -2], [0, 2], [0, -2], [1, 2], [1, -2]],
+                    d: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, -2], [0, 2], [0, -2], [1, 1], [1, 0], [1, -1]],
+                    e: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, 0], [-1, -2], [0, 2], [0, 0], [0, -2], [1, 2], [1, 0], [1, -2]],
+                    f: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 0], [-1, -2], [0, 0], [0, -2], [1, 0], [1, -2]],
+                    g: [[-1, -2], [0, -2], [1, -2], [-2, -1], [-2, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2], [1, 2]],
+                    h: [[-2, -2], [1, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-2, 2], [1, 2]],
+                    i: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [0, 1], [-1, 2], [0, 2], [1, 2]],
+                    j: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [-2, 1], [0, 1], [-1, 2]],
+                    k: [[-2, -2], [1, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [-2, 1], [0, 1], [-2, 2], [1, 2]],
+                    l: [[-2, -2], [-2, -1], [-2, 0], [-2, 1], [-2, 2], [-1, 2], [0, 2], [1, 2]],
+                    m: [[-2, -2], [2, -2], [-2, -1], [-1, -1], [1, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [2, 1], [-2, 2], [2, 2]],
+                    n: [[-2, -2], [1, -2], [-2, -1], [-1, -1], [1, -1], [-2, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-2, 2], [1, 2]],
+                    o: [[-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2]],
+                    p: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [-2, 2]],
+                    q: [[-1, -2], [0, -2], [1, -2], [-2, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [1, 1], [2, 1], [-1, 2], [0, 2], [1, 2], [2, 2]],
+                    r: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [1, 2]],
+                    s: [[-1, -2], [0, -2], [1, -2], [-2, -1], [-1, 0], [0, 0], [1, 1], [-2, 2], [-1, 2], [0, 2]],
+                    t: [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [0, -1], [0, 0], [0, 1], [0, 2]],
+                    u: [[-2, -2], [1, -2], [-2, -1], [1, -1], [-2, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2]],
+                    v: [[-2, -2], [2, -2], [-2, -1], [2, -1], [-2, 0], [2, 0], [-1, 1], [1, 1], [0, 2]],
+                    w: [[-2, -2], [2, -2], [-2, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [-1, 1], [1, 1], [2, 1], [-2, 2], [2, 2]],
+                    x: [[-2, -2], [2, -2], [-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1], [-2, 2], [2, 2]],
+                    y: [[-2, -2], [2, -2], [-1, -1], [1, -1], [0, 0], [0, 1], [0, 2]],
+                    z: [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [1, -1], [0, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2]],
+                    ' ': [],
+                    0: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    1: [[-1, -2], [-2, -1], [-1, -1], [-1, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2]],
+                    2: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [-2, 2], [-1, 2], [0, 2]],
+                    3: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    4: [[-2, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [0, 2]],
+                    5: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    6: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    7: [[-2, -2], [-1, -2], [0, -2], [0, -1], [0, 0], [0, 1], [0, 2]],
+                    8: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    9: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
+                    '.': [[-1, 1], [0, 1], [-1, 2], [0, 2]],
+                    '-': [[-1, 0], [0, 0], [1, 0]],
+                    '+': [[-1, 0], [0, 0], [1, 0], [0, 1], [0, -1]],
+                    ':': [[-1, -2], [0, -2], [-1, -1], [0, -1], [-1, 1], [0, 1], [-1, 2], [0, 2]]
+                };
+                let s = arg,
+                    r = [],
+                    l = 0,
+                    longWord = 'amqvwxyz';
+                _this.each(function (i) {
+                    let thisWord = words[s[i]];
+                    _this.each(function (i) {
+                        thisWord[i][0] += l;
+                    }, thisWord.length);
+                    if (longWord.indexOf(s[i]) > -1) {
+                        l += 6;//长
+                    } else if (longWord.indexOf(s[i]) == -1) {
+                        l += 5;//短
+                    }
+                    else {
+                        l += 4;//数字与符号
+                    }
+                    r = r.concat(thisWord);
+                }, s.length);
+                this.l = r.map(a => _this.p + a[0] + a[1] * x);
+            }
+            this.n = this.l.length;
+        },
+        show: function (arg) {
+            let state = arg != false;
+            return this.each(function (i) {
+                if (i >= 0 && i < all) {
+                    btns[i].checked = state;
                 }
             });
         },
-        //画直线方法，参数分别为方向、起始位置以及结束位置
-        line: function (x_or_y, start, end) {
-            switch (x_or_y) {
-                case 'x':
-                    this.each(function (i) {
-                        if (i > start && i < end) {
-                            btns[i].checked = 'checked';
-                        }
-                    });
-                    break;
-                case 'y':
-                    var liney = end % x;
-                    this.each(function (i) {
-                        if (i > start && i < end && (i % x == liney)) {
-                            btns[i].checked = 'checked';
-                        }
-                    });
-                    break;
-                default:
-                    console.log('line towards erro')
-            }
+        hide: function () {
+            return this.show(false);
         },
-        //画框方法
-        box: function (start, end) {
-            var top_left = start;
-            var top_right = start + end % x - start % x;
-            var bottom_left = (end / x)._floor() * x + start % x;
-            var bottom_right = end;
-            this.line('x', top_left, top_right);
-            this.line('x', bottom_left, bottom_right);
-            this.line('y', top_left, bottom_left);
-            this.line('y', top_right, bottom_right);
-        },
-        //模型移动方法，option对象为移动配置参数，可配置移动的方向，速度，距离以及移动完成的回调函数
-        move: function (i, array, option) {
-            var _this = this;
-            var arr = array._copy();
-            var towards = (function (t) {
-                var moveStr;
-                switch (t) {
+        move: function (option, speed) {
+            let next = (function () {
+                let r = [];
+                switch (option.target || 'right') {
                     case 'top':
-                        moveStr = 'arr[c][1]--';
-                        break;
-                    case 'bottom':
-                        moveStr = 'arr[c][1]++';
+                        r = [0, -1];
                         break;
                     case 'right':
-                        moveStr = 'arr[c][0]++';
+                        r = [1, 0];
+                        break;
+                    case 'bottom':
+                        r = [0, 1];
                         break;
                     case 'left':
-                        moveStr = 'arr[c][0]--';
-                        break;
-                    case 'top-left':
-                        moveStr = 'arr[c][1]--;arr[c][0]--';
+                        r = [-1, 0];
                         break;
                     case 'top-right':
-                        moveStr = 'arr[c][1]--;arr[c][0]++';
-                        break;
-                    case 'bottom-left':
-                        moveStr = 'arr[c][1]++;arr[c][0]--';
+                        r = [1, -1];
                         break;
                     case 'bottom-right':
-                        moveStr = 'arr[c][1]++;arr[c][0]++';
+                        r = [1, 1];
+                        break;
+                    case 'bottom-left':
+                        r = [-1, 1];
+                        break;
+                    case 'top-left':
+                        r = [-1, -1];
                         break;
                     default:
-                        moveStr = 'console.log("move towards erro")';
                         break;
                 }
-                return function (c) {
-                    eval(moveStr);
-                }
-            })(option.towards);
-            var tomove = setInterval(function () {
-                if (option.steps > 0) {
-                    _this.each(arr, function (c) {
-                        _this.layout(i, arr, 'hide');
-                        towards(c);
-                        _this.layout(i, arr, 'show');
-                    })
-                } else {
-                    clearInterval(tomove);
-                    if (typeof option.callBack == 'function')option.callBack();
-                }
-                option.steps--;
-            }, option.speed || 100)
+                return r[0] + r[1] * x;
+            })();
+            let steps = 0,
+                _this = this,
+                spd = speed || 300,
+                t = setInterval(function () {
+                    if (steps == option.steps) {
+                        clearInterval(t);
+                    } else {
+                        _this.hide();
+                        _this.l = _this.l.map(a => a + next);
+                        _this.show();
+                        steps++;
+                    }
+                }, spd);
+            return this;
         },
-        //动画方法
-        animate: function (fns, option) {
-            var steps = 0;
-            var toshow = setInterval(function () {
-                if (steps < option.end) {
-                    typeof fns == 'function' ? fns(steps, toshow) : fns[steps](steps, toshow);
-                }
-                if (steps == option.end) {
-                    clearInterval(toshow);
-                }
-                steps++;
-            }, option.speed || 300);
-            return toshow;
+        animate: function (option,fn,speed) {
+            let _this = this,
+                steps = 0,
+                spd = speed||300,
+                t = setInterval(function () {
+                    if(steps==option.steps){
+                        clearInterval(t);
+                    }else{
+                        fn(steps);
+                        steps++;
+                    }
+                },spd);
+            return this;
         },
-        //全屏闪烁方法
-        shine: function () {
-            var _this = this;
-            this.animate(function (a) {
+        shine: function (a) {
+            let _this = this;
+            return this.animate({steps:4},function () {
                 _this.each(function (i) {
-                    (btns[i].checked == '') ? btns[i].checked = 'checked' : btns[i].checked = '';
-                })
-            }, {end: 4, speed: 400})
-        },
-        //todo
-        countdownTimer: function () {
-        },
-        //全屏清除
-        clear: function () {
-            this.each(function (i) {
-                btns[i].checked = '';
+                    btns[i].checked = !btns[i].checked;
+                },a);
             })
         },
-        //字母与数字
-        printWord: function (word, start) {
-            var wordModel = {
-                a: [[0, -2], [-1, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-2, 1], [2, 1], [-2, 2], [2, 2]],
-                b: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, 0], [-1, -2], [0, 2], [0, 0], [0, -2], [1, 1], [1, -1]],
-                c: [[-2, 1], [-2, 0], [-2, -1], [-1, 2], [-1, -2], [0, 2], [0, -2], [1, 2], [1, -2]],
-                d: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, -2], [0, 2], [0, -2], [1, 1], [1, 0], [1, -1]],
-                e: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 2], [-1, 0], [-1, -2], [0, 2], [0, 0], [0, -2], [1, 2], [1, 0], [1, -2]],
-                f: [[-2, 2], [-2, 1], [-2, 0], [-2, -1], [-2, -2], [-1, 0], [-1, -2], [0, 0], [0, -2], [1, 0], [1, -2]],
-                g: [[-1, -2], [0, -2], [1, -2], [-2, -1], [-2, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2], [1, 2]],
-                h: [[-2, -2], [1, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-2, 2], [1, 2]],
-                i: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [0, 1], [-1, 2], [0, 2], [1, 2]],
-                j: [[-1, -2], [0, -2], [1, -2], [0, -1], [0, 0], [-2, 1], [0, 1], [-1, 2]],
-                k: [[-2, -2], [1, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [-2, 1], [0, 1], [-2, 2], [1, 2]],
-                l: [[-2, -2], [-2, -1], [-2, 0], [-2, 1], [-2, 2], [-1, 2], [0, 2], [1, 2]],
-                m: [[-2, -2], [2, -2], [-2, -1], [-1, -1], [1, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [2, 1], [-2, 2], [2, 2]],
-                n: [[-2, -2], [1, -2], [-2, -1], [-1, -1], [1, -1], [-2, 0], [0, 0], [1, 0], [-2, 1], [1, 1], [-2, 2], [1, 2]],
-                o: [[-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2]],
-                p: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [-2, 2]],
-                q: [[-1, -2], [0, -2], [1, -2], [-2, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [1, 1], [2, 1], [-1, 2], [0, 2], [1, 2], [2, 2]],
-                r: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [1, 2]],
-                s: [[-1, -2], [0, -2], [1, -2], [-2, -1], [-1, 0], [0, 0], [1, 1], [-2, 2], [-1, 2], [0, 2]],
-                t: [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [0, -1], [0, 0], [0, 1], [0, 2]],
-                u: [[-2, -2], [1, -2], [-2, -1], [1, -1], [-2, 0], [1, 0], [-2, 1], [1, 1], [-1, 2], [0, 2]],
-                v: [[-2, -2], [2, -2], [-2, -1], [2, -1], [-2, 0], [2, 0], [-1, 1], [1, 1], [0, 2]],
-                w: [[-2, -2], [2, -2], [-2, -1], [2, -1], [-2, 0], [0, 0], [2, 0], [-2, 1], [-1, 1], [1, 1], [2, 1], [-2, 2], [2, 2]],
-                x: [[-2, -2], [2, -2], [-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1], [-2, 2], [2, 2]],
-                y: [[-2, -2], [2, -2], [-1, -1], [1, -1], [0, 0], [0, 1], [0, 2]],
-                z: [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [1, -1], [0, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2]],
-                ' ': [],
-                0: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                1: [[-1, -2], [-2, -1], [-1, -1], [-1, 0], [-1, 1], [-2, 2], [-1, 2], [0, 2]],
-                2: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [-2, 2], [-1, 2], [0, 2]],
-                3: [[-2, -2], [-1, -2], [0, -2], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                4: [[-2, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [0, 2]],
-                5: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                6: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                7: [[-2, -2], [-1, -2], [0, -2], [0, -1], [0, 0], [0, 1], [0, 2]],
-                8: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [-2, 1], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                9: [[-2, -2], [-1, -2], [0, -2], [-2, -1], [0, -1], [-2, 0], [-1, 0], [0, 0], [0, 1], [-2, 2], [-1, 2], [0, 2]],
-                '.': [[-1, 1], [0, 1], [-1, 2], [0, 2]],
-                '-': [[-1, 0], [0, 0], [1, 0]],
-                '+': [[-1, 0], [0, 0], [1, 0], [0, 1], [0, -1]],
-                ':': [[-1, -2], [0, -2], [-1, -1], [0, -1], [-1, 1], [0, 1], [-1, 2], [0, 2]]
-            };
-            var s = word.split('');
-            var b = start || (x * 3 + 3);
-            for (var i = 0; i < s.length; i++) {
-                var longWord = 'amqvwxyz';
-                var thisWord = s[i];
-                var distance = longWord.indexOf(thisWord) == -1 ? 5 : 6;
-                if (thisWord * 1) {
-                    distance = 4;
-                } else if (longWord.indexOf(thisWord) == -1) {
-                    distance = 5
+        fadeIn: function (speed,s) {
+            let _this = this,
+             state = s != false;
+            this.l.sort(function () {
+                return .5-Math.random();
+            });
+            return this.animate({steps:_this.n},function (t) {
+                if(btns[_this.l[t]]){
+                    btns[_this.l[t]].checked = state;
                 }
-                else {
-                    distance = 6;
-                }
-                this.layout(b, [[-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2], [-2, -1], [-1, -1], [0, -1], [1, -1], [2, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-2, 1], [-1, 1], [0, 1], [1, 1], [2, 1], [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2]], 'hide');
-                this.layout(b, wordModel[thisWord], 'show');
-                b = b + distance;
-            }
+            },speed||10)
         },
-        //根据画面输出模型
-        output: function (index) {
-            var selected = '';
-            var x0, y0;
-            if (index) {
-                if (typeof index == 'number') {
-                    x0 = (index / x)._floor();
-                    y0 = index % x;
-                } else {
-                    x0 = index[0];
-                    y0 = index[1];
-                }
-            } else {
-                x0 = 0;
-                y0 = 0;
-            }
-            for (var i = 0; i < btns.length; i++) {
-                if (btns[i].checked) {
-                    var arr = [i % x - y0, (i / x)._floor() - x0];
-                    selected += ',[' + arr.join() + ']'
-                }
-            }
-            return '[' + selected.substr(1) + ']';
+        fadeOut: function (speed) {
+            return this.fadeIn(speed||10,false);
         },
-        toLine: function (index, arr) {
-            var newArr = [];
-            for (var i = 0; i < arr.length; i++) {
-                newArr.push(index + arr[i][0] + arr[i][1] * x);
-            }
-            return newArr;
+        lineIn: function (speed,s) {
+            let _this = this,
+                state = s != false;
+            return this.animate({steps:_this.n},function (t) {
+                if(btns[_this.l[t]]){
+                    btns[_this.l[t]].checked = state;
+                }
+            },speed||10)
         }
     };
-    //返回实例
-    return new model();
-})();
+    pixel.get = function () {
+        return {
+            x: x,
+            y: y,
+            all: all,
+            center: center,
+            btns: btns
+        }
+    };
+    pixel.output = function (idx) {
+        let selected = '',
+            x0,
+            y0,
+            index = idx || center;
+        if (typeof index == 'number') {
+            x0 = (index / x) | 0;
+            y0 = index % x;
+        } else {
+            x0 = index[0];
+            y0 = index[1];
+        }
+        pixel.fn.each(function (i) {
+            if (btns[i].checked) {
+                let arr = [i % x - y0, ((i / x) | 0) - x0];
+                selected += ',[' + arr.join() + ']'
+            }
+        }, all);
+        return '[' + selected.substr(1) + ']';
+    };
+    pixel.shine = function () {
+        pixel.fn.shine(all);
+    };
+    pixel.draw = function () {
+        document.body.onmousedown = function () {
+            this.onmouseover = function (e) {
+                let thisx = (e.clientX / l) | 0,
+                    thisy = (e.clientY / l) | 0;
+                btns[thisx + x * thisy].checked = true;
+            };
+        };
+        document.body.onmouseup = function () {
+            this.onmouseover = '';
+        };
+    };
+    
+    // 设置样式
+    (function () {
+        let styleNode = document.createElement('style'),
+            str = 'body,input{margin:0;overflow:hidden;line-height:12px}';
+        if (styleNode.styleSheet) {
+            styleNode.styleSheet.cssText = str;
+        } else {
+            styleNode.innerHTML = str;
+        }
+        document.getElementsByTagName('head')[0].appendChild(styleNode);
+    })();
+    // 填充按钮
+    pixel.fn.each(function (i) {
+        let inputs = document.createElement('input');
+        inputs.type = 'checkbox';
+        inputs.title = `x: ${i % x} y: ${(i / x) | 0} index: ${i}`;
+        inputs.onclick = function () {
+            console.log(this.title)
+        };
+        document.body.appendChild(inputs);
+        btns.push(inputs);
+    }, all);
+    
+    pixel.fn.init.prototype = pixel.fn;
+    window.pixel = window.$ = pixel;
+})(window, undefined);
+
