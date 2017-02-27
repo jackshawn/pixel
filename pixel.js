@@ -16,20 +16,27 @@
         y = (h / l) | 0,
         // 总个数
         all = x * y,
-        
         // 中心位置索引
         center = (((y % 2 == 0) ? (all - x) / 2 : (all / 2 )) - 1) | 0;
     //checkbox按钮数组
     let btns = [];
-    let pixel = function (arr, p) {
-        return new pixel.fn.init(arr, p);
+    //数组原型上添加拷贝方法
+    Array.prototype.copy = function () {
+        let newArr = [];
+        for (let i in this) {
+            newArr[i] = typeof this[i] == 'object' ? this[i].copy() : this[i];
+        }
+        return newArr;
+    };
+    let pixel = function (model, position) {
+        return new pixel.fn.init(model, position);
     };
     
     pixel.fn = pixel.prototype = {
         //迭代方法
-        each: function (fn, l) {
-            if (l) {
-                for (let i = 0; i < l; i++) {
+        each: function (fn, length) {
+            if (length) {
+                for (let i = 0; i < length; i++) {
                     fn(i);
                 }
             } else {
@@ -40,22 +47,22 @@
             return this;
         },
         // 初始化，参数接受二维数组、一维数组、数字与字符串
-        init: function (arg, p) {
+        init: function (model, position) {
             let _this = this;
             //位置索引
-            this.p = p || center;
-            if (typeof arg == 'object') {
+            this.p = position || center;
+            if (typeof model == 'object') {
                 //二维数组
-                if (typeof arg[0] == 'object') {
-                    this.l = arg.map(a => _this.p + a[0] + a[1] * x);
+                if (typeof model[0] == 'object') {
+                    this.l = model.map(a => _this.p + a[0] + a[1] * x);
                 }
                 //一维数组
-                if (typeof arg[0] == 'number') {
-                    this.l = arg;
+                if (typeof model[0] == 'number') {
+                    this.l = model;
                 }
-            } else if (typeof arg == 'number') {
+            } else if (typeof model == 'number') {
                 // 数字
-                this.l = [arg];
+                this.l = [model];
             }
             //字符串
             else {
@@ -102,14 +109,15 @@
                     '+': [[-1, 0], [0, 0], [1, 0], [0, 1], [0, -1]],
                     ':': [[-1, -2], [0, -2], [-1, -1], [0, -1], [-1, 1], [0, 1], [-1, 2], [0, 2]]
                 };
-                let s = arg,
+                let s = model,
                     r = [],
                     l = 0,
                     longWord = 'amqvwxyz';
                 _this.each(function (i) {
-                    let thisWord = words[s[i]];
+                    let thisWord = words[s[i]].copy();
                     _this.each(function (i) {
-                        thisWord[i][0] += l;
+                        thisWord[i][0] = thisWord[i][0] + l;
+                        r.push(thisWord[i])
                     }, thisWord.length);
                     if (longWord.indexOf(s[i]) > -1) {
                         l += 6;//长
@@ -119,17 +127,25 @@
                     else {
                         l += 4;//数字与符号
                     }
-                    r = r.concat(thisWord);
                 }, s.length);
                 this.l = r.map(a => _this.p + a[0] + a[1] * x);
             }
             this.n = this.l.length;
+            this.getRandom = function () {
+                this.r = this.l.concat([]).sort(function () {
+                    return .5 - Math.random();
+                });
+            };
+            this.l.sort();
+            this.getRandom();
+            //动画延时
+            this.wait = 0;
         },
-        show: function (arg) {
-            let state = arg != false;
+        show: function (state) {
+            let s = state != false;
             return this.each(function (i) {
                 if (i >= 0 && i < all) {
-                    btns[i].checked = state;
+                    btns[i].checked = s;
                 }
             });
         },
@@ -137,98 +153,126 @@
             return this.show(false);
         },
         move: function (option, speed) {
+            let _this = this;
             let next = (function () {
-                let r = [];
+                let result = [];
                 switch (option.target || 'right') {
                     case 'top':
-                        r = [0, -1];
+                        result = [0, -1];
                         break;
                     case 'right':
-                        r = [1, 0];
+                        result = [1, 0];
                         break;
                     case 'bottom':
-                        r = [0, 1];
+                        result = [0, 1];
                         break;
                     case 'left':
-                        r = [-1, 0];
+                        result = [-1, 0];
                         break;
                     case 'top-right':
-                        r = [1, -1];
+                        result = [1, -1];
+                        break;
+                    case 'right-top':
+                        result = [1, -1];
                         break;
                     case 'bottom-right':
-                        r = [1, 1];
+                        result = [1, 1];
+                        break;
+                    case 'right-bottom':
+                        result = [1, 1];
                         break;
                     case 'bottom-left':
-                        r = [-1, 1];
+                        result = [-1, 1];
+                        break;
+                    case 'left-bottom':
+                        result = [-1, 1];
                         break;
                     case 'top-left':
-                        r = [-1, -1];
+                        result = [-1, -1];
+                        break;
+                    case 'left-top':
+                        result = [-1, -1];
                         break;
                     default:
                         break;
                 }
-                return r[0] + r[1] * x;
+                return result[0] + result[1] * x;
             })();
-            let steps = 0,
-                _this = this,
-                spd = speed || 300,
-                t = setInterval(function () {
-                    if (steps == option.steps) {
+            return this.animate(option.steps, function () {
+                _this.hide();
+                _this.l = _this.l.map(a => a + next);
+                _this.show();
+            }, speed);
+        },
+        animate: function (steps, fn, speed) {
+            let _this = this,
+                step = 0,
+                spd = speed || 300;
+            setTimeout(function () {
+                let t = setInterval(function () {
+                    if (step == steps) {
                         clearInterval(t);
+                        _this.getRandom();
+                        _this.wait = 0;
                     } else {
-                        _this.hide();
-                        _this.l = _this.l.map(a => a + next);
-                        _this.show();
-                        steps++;
+                        fn(step);
+                        step++;
                     }
                 }, spd);
+            }, this.wait);
+            this.wait += (spd * steps + 500);
             return this;
         },
-        animate: function (option,fn,speed) {
+        shine: function (option, n) {
             let _this = this,
-                steps = 0,
-                spd = speed||300,
-                t = setInterval(function () {
-                    if(steps==option.steps){
-                        clearInterval(t);
-                    }else{
-                        fn(steps);
-                        steps++;
-                    }
-                },spd);
-            return this;
-        },
-        shine: function (a) {
-            let _this = this;
-            return this.animate({steps:4},function () {
+                times = option.times || 4,
+                spd = option.speed;
+            return this.animate(times, function () {
                 _this.each(function (i) {
                     btns[i].checked = !btns[i].checked;
-                },a);
-            })
+                }, n);
+            }, spd)
         },
-        fadeIn: function (speed,s) {
+        fadeIn: function (speed, state) {
             let _this = this,
-             state = s != false;
-            this.l.sort(function () {
-                return .5-Math.random();
-            });
-            return this.animate({steps:_this.n},function (t) {
-                if(btns[_this.l[t]]){
-                    btns[_this.l[t]].checked = state;
+                s = state != false;
+            return this.animate(_this.n, function (t) {
+                if (btns[_this.r[t]]) {
+                    btns[_this.r[t]].checked = s;
                 }
-            },speed||10)
+            }, speed || 10)
         },
         fadeOut: function (speed) {
-            return this.fadeIn(speed||10,false);
+            return this.fadeIn(speed, false);
         },
-        lineIn: function (speed,s) {
+        slideDown: function (speed, s) {
             let _this = this,
-                state = s != false;
-            return this.animate({steps:_this.n},function (t) {
-                if(btns[_this.l[t]]){
-                    btns[_this.l[t]].checked = state;
-                }
-            },speed||10)
+                state = s != false,
+                spd = speed || 10;
+            if (state) {
+                return this.animate(_this.n, function (t) {
+                    if (btns[_this.l[t]]) {
+                        btns[_this.l[t]].checked = state;
+                    }
+                }, spd)
+            } else {
+                return this.animate(_this.n, function (t) {
+                    if (btns[_this.l[_this.n - t - 1]]) {
+                        btns[_this.l[_this.n - t - 1]].checked = state;
+                    }
+                }, spd)
+            }
+        },
+        slideUp: function (speed) {
+            return this.slideDown(speed, false)
+        },
+        shake: function (times, speed) {
+            let _this = this;
+            return this.animate(times || 6, function (t) {
+                _this.hide();
+                _this.l = _this.l.map(a => a + (t % 2 == 0 ? -1 : 1));
+                _this.show();
+            }, speed || 75)
         }
     };
     pixel.get = function () {
