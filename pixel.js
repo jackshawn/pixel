@@ -273,6 +273,9 @@
                 _this.l = _this.l.map(a => a + (t % 2 == 0 ? -1 : 1));
                 _this.show();
             }, speed || 75)
+        },
+        rotate: function () {
+            
         }
     };
     pixel.get = function () {
@@ -285,29 +288,35 @@
         }
     };
     pixel.output = function (idx) {
-        let selected = '',
-            x0,
-            y0,
-            index = idx || center;
-        if (typeof index == 'number') {
-            x0 = (index / x) | 0;
-            y0 = index % x;
-        } else {
-            x0 = index[0];
-            y0 = index[1];
-        }
-        pixel.fn.each(function (i) {
-            if (btns[i].checked) {
-                let arr = [i % x - y0, ((i / x) | 0) - x0];
-                selected += ',[' + arr.join() + ']'
+        if(idx&&idx=='record'){
+            clearInterval(pixel.prototype.flash.timer)
+            return '[' + pixel.prototype.flash.data.substr(1) + ']';
+        }else{
+            let selected = '',
+                x0,
+                y0,
+                index = idx || center;
+            if (typeof index == 'number') {
+                x0 = (index / x) | 0;
+                y0 = index % x;
+            } else {
+                x0 = index[0];
+                y0 = index[1];
             }
-        }, all);
-        return '[' + selected.substr(1) + ']';
+            pixel.fn.each(function (i) {
+                if (btns[i].checked) {
+                    let arr = [i % x - y0, ((i / x) | 0) - x0];
+                    selected += ',[' + arr.join() + ']';
+                }
+            }, all);
+            return '[' + selected.substr(1) + ']';
+        }
+
     };
     pixel.shine = function () {
         pixel.fn.shine(all);
     };
-    pixel.draw = function () {
+    pixel.draw = function (option) {
         document.body.onmousedown = function () {
             this.onmouseover = function (e) {
                 let thisx = (e.clientX / l) | 0,
@@ -318,6 +327,27 @@
         document.body.onmouseup = function () {
             this.onmouseover = '';
         };
+        if (option && option == 'record') {
+            pixel.prototype.flash = {
+                data: '',
+                t : setInterval(function () {
+                    if(pixel.output().length>2){
+                        pixel.prototype.flash.data += ',' + pixel.output()
+                    }
+                    console.log('.')
+                }, 100)
+            }
+        }
+    };
+    pixel.play = function (arr) {
+        let i = 0,
+        t = setInterval(function () {
+            $(arr[i]).show();
+            if(i==arr.length-1){
+                clearInterval(t);
+            }
+            i++
+        },100)
     };
     
     // 设置样式
@@ -346,4 +376,3 @@
     pixel.fn.init.prototype = pixel.fn;
     window.pixel = window.$ = pixel;
 })(window, undefined);
-
