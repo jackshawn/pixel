@@ -46,7 +46,7 @@
     </script>
 </body>
 ```
-<video src="./img/2.mov" controls autoplay loop width=855></video>
+![](./img/2.gif)
 
 ### 还能干啥
 
@@ -62,7 +62,7 @@
     </script>
 </body>
 ```
-<video src="./img/3.mov" controls autoplay loop width=855></video>
+![](./img/3.gif)
 
 2.控制台, 通过`$.output()`获取数据;
 
@@ -77,11 +77,12 @@
     </script>
 </body>
 ```
+![](./img/4.gif)
 
-<video src="./img/4.mov" controls autoplay loop width=855></video>
 
 * 当然还有录制`$.record()`与播放`$.play()`
 
 * 甚至可以做一些游戏
-<video src="./img/5.mov" controls autoplay loop width=855></video>
-<video src="./img/6.mov" controls autoplay loop width=855></video>
+
+![](./img/5.gif)
+![](./img/6.gif)
